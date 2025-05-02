@@ -1,10 +1,10 @@
-# :1234: CSV Summary Tool
+# :1234: CSV Summary Tool 
 
 #### Using Rust and GitHub Actions
 
 ## Overview
 
-In this assignment, you will develop a command-line application in **Rust** that parses a CSV (Comma-Separated Values) file and computes summary statistics such as **count**, **minimum**, **maximum**, and **average** for each numeric column. The tool should run locally on your laptop, accept a filename as the only argument, and return structured output.
+In this assignment, you will develop a command-line application in **Rust** that parses a CSV (Comma-Separated Values) file and computes summary statistics such as **count**, **minimum**, **maximum**, and **average** for each numeric column. The tool should run locally your laptop, accept a filename as the only argument, and return structured output.
 
 This assignment gives you hands-on experience with:
 
@@ -80,29 +80,9 @@ Note that `value1` and `value2` are the header columns for columns with numeric 
 
 ---
 
-## Starter repository
+## Tasks
 
-Go to  the public GitHub template repository [cs69_269_lab3_template](https://github.com/RustAtDartmouth/cs69_269_lab3_template). Follow that link and click the green button "Use this repository" to create a new repository under your GitHub username. Name the repository "lab3" , mark it as private, and continue.
-
-When you clone your new repository onto your laptop, you should have these files and directories:
-
-```bash
-.
-├── Cargo.toml
-├── LICENSE
-├── README.md
-├── sample-missing-data.csv
-├── sample.csv
-├── src
-│   └── main.rs
-└── test
-    └── integration_test.rs
-
-2 directories, 7 files
-
-```
-
-You will also have `.gitignore` and `.github/workflows/ci.yml` files.
+1. Copy the provided GitHub template repository
 
 ## Errors
 
@@ -138,45 +118,112 @@ You can run this test manually with `cargo test`
 
 ## GitHub Actions CI
 
-Update the GitHub Actions workflow file at the top of your directory: `.github/workflows/ci.yml` . It should perform several jobs when the repository is `pushed` to either the `main` or `develop` branches.
+Setup two GitHub Actions workflow files at the top of your directory:
+Two workflows: CI and CD
 
-> [!NOTE]
-> You do not need to protect the main or develop branches for this lab and you do not need to trigger the actions on a pull-request or any other event.
+#### CI should do what we usually have, with the added "tags-ignore" since we want the other workflow to run when tags are pushed.
+
+  - ```yaml
+    on:
+      push:
+        branches:
+          - 'main'
+        tags-ignore:
+    ```
+
+It should perform the usual steps we've seen:
+
+1. Checkout repository
+1. Install Rust (stable)
+1. `cargo build --verbose`
+1. `cargo test --verbose`
+1. `cargo clippy --all-targets --all-features -- -D warnings`
+1. `cargo fmt --all -- --check`
+
+#### CD is only for new tags of the form "v1.**" or "v2.**"
+
+  - ```yaml
+    on:
+      push:
+        tags:
+          - v1.*
+          - v2.*
+    ```
+
+The CD workflow should:
+
+- run on Ubuntu
+
+- set ENV vars
+
+  - CRATE_PATHS=.
+
+- have these steps:
+
+  - `check-version`
+
+    - Check version to release in `Cargo.toml` files using `get-version.sh` and save in `outputs.version` 
+    - Append a line to `CHANGELOG.md`: "CD started on version `outputs.version`"
+
+  - test-ubuntu
+
+    - `needs: check-version`
+    - Test on Ubuntu (latest)
+
+  - test-windows
+
+    - `needs: check-version`
+    - Test on Windows (latest)
+
+  - test-macos
+
+    - `needs: check-version`
+    - Test on MacOS
+
+  - create-release:
+
+    - ```yml
+      needs:
+        - test-ubuntu
+        - test-windows
+        - test-macos
+      ```
+
+    - increment the version number in `Cargo.toml` using `increment-version.sh`
+
+    - fetch the new version number back into `outputs.version`
+
+    - Append a line with the latest version and its release date in the `CHANGELOG.md` file and push the changes
+
+  - Tag the created commit with the name of the released version and push the changes.
+
+You will have to find a way to get the version info obtained in `step: check-version` to use as 
+the parameter to the `increment-version.sh` to update it in `Cargo.toml`.
 
 
-```githubworkflow
-jobs:
-  check:
-    name: lint
-    # Run clippy: `cargo clippy -- -D warnings`
-    # ...
-  formatting:
-    name: fmt
-    # Check source code formatting: cargo rustfmt -- --check
-    # ...
-  build:
-    name: build-test
-	  # setup for building and testing
-	  # ...
-    # cargo build
-    # cargo test --all-features
+## Secrets
+
+to do the CD you will need a GitHub Personal Access Token. On GitHub, click on your icon in top-right corner, then settings->Developer Settings->Personal access tokens -> Tokens (classic) then Generate New Token.
+
+You have to save that token in an Environment for your repository. Go to Settings-> Environments and add an Environment named "DEPLOYMENT" and a secret there named GIT-TOKEN with the value of the access token.
+
+In the CD workflow you can extract that secret by setting an ENV variable:
+
+```yml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
+
 ```
 
 ## Grading rubric (25 points)
 
-| Feature                                   | Points |
-| ----------------------------------------- | ------:|
-| Reads and parses CSV file correctly      |    5    |
-| Correct computation of summary statistics |    5    |
-| Integration tests with `cargo test`       |    5    |
-| CI workflow: build, test, lint, format    |    5    |
-| Graceful error handling (especially no panics) |    5    |
-
-
-
-## How to submit your work
-
-Share your repository with the instructor in a read-only mode. Canvas expects a GitHub repository URL as your lab2 submission.
+| Feature                                        | Points |
+| ---------------------------------------------- | -----: |
+| Reads and parses CSV file correctly            |      5 |
+| Correct computation of summary statistics      |      3 |
+| Integration tests with `cargo test`            |      5 |
+| Workflows: CI (4) and CD (4)                   |      8 |
+| Graceful error handling (especially no panics) |      4 |
 
 ## License
 
