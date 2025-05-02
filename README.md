@@ -1,10 +1,10 @@
-# :1234: CSV Summary Tool 
+# :1234: CSV Summary Tool
 
 #### Using Rust and GitHub Actions
 
 ## Overview
 
-In this assignment, you will develop a command-line application in **Rust** that parses a CSV (Comma-Separated Values) file and computes summary statistics such as **count**, **minimum**, **maximum**, and **average** for each numeric column. The tool should run locally your laptop, accept a filename as the only argument, and return structured output.
+In this assignment, you will develop a command-line application in **Rust** that parses a CSV (Comma-Separated Values) file and computes summary statistics such as **count**, **minimum**, **maximum**, and **average** for each numeric column. The tool should run locally on your laptop, accept a filename as the only argument, and return structured output.
 
 This assignment gives you hands-on experience with:
 
@@ -80,9 +80,29 @@ Note that `value1` and `value2` are the header columns for columns with numeric 
 
 ---
 
-## Tasks
+## Starter repository
 
-1. Copy the provided GitHub template repository
+Go to  the public GitHub template repository [cs69_269_lab3_template](https://github.com/RustAtDartmouth/cs69_269_lab3_template). Follow that link and click the green button "Use this repository" to create a new repository under your GitHub username. Name the repository "lab3" , mark it as private, and continue.
+
+When you clone your new repository onto your laptop, you should have these files and directories:
+
+```bash
+.
+├── Cargo.toml
+├── LICENSE
+├── README.md
+├── sample-missing-data.csv
+├── sample.csv
+├── src
+│   └── main.rs
+└── test
+    └── integration_test.rs
+
+2 directories, 7 files
+
+```
+
+You will also have `.gitignore` and `.github/workflows/ci.yml` files.
 
 ## Errors
 
@@ -118,7 +138,10 @@ You can run this test manually with `cargo test`
 
 ## GitHub Actions CI
 
-Setup a GitHub Actions workflow file at the top of your directory: `.github/workflows/lab3-ci.yml` . It should perform several jobs when the repository is `pushed` to either the `main` or `develop` branches. 
+Update the GitHub Actions workflow file at the top of your directory: `.github/workflows/ci.yml` . It should perform several jobs when the repository is `pushed` to either the `main` or `develop` branches.
+
+> [!NOTE]
+> You do not need to protect the main or develop branches for this lab and you do not need to trigger the actions on a pull-request or any other event.
 
 
 ```githubworkflow
@@ -132,6 +155,7 @@ jobs:
     # Check source code formatting: cargo rustfmt -- --check
     # ...
   build:
+    name: build-test
 	  # setup for building and testing
 	  # ...
     # cargo build
@@ -149,6 +173,10 @@ jobs:
 | Graceful error handling (especially no panics) |    5    |
 
 
+
+## How to submit your work
+
+Share your repository with the instructor in a read-only mode. Canvas expects a GitHub repository URL as your lab2 submission.
 
 ## License
 
